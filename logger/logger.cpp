@@ -2,26 +2,36 @@
 
 #include <assert.h>
 
-Logger::Logger(Output out)
-    : flag(out), trace(nullptr,
-                       [](IP7_Trace* trace) {
-                           if (trace != nullptr) {
-                               trace->Unregister_Thread(0);
-                               trace->Release();
-                           }
-                       }),
+Logger::Logger()
+    : flag(Output::Null), trace(nullptr,
+                                [](IP7_Trace* trace) {
+                                    if (trace != nullptr) {
+                                        trace->Unregister_Thread(0);
+                                        trace->Release();
+                                    }
+                                }),
       client(nullptr, [](IP7_Client* client) {
           if (client != nullptr) {
               client->Release();
           }
       }) {}
 
+Logger& Logger::instance() {
+    static Logger instance;
+    return instance;
+}
+
+// TODO many outputs same time (needs massive refactor)
+void Logger::setFlag(Output out) { flag = out; }
+
 void Logger::init(std::string const& thread_name,
                   std::string const& module_name,
                   std::string const& dir_or_addr) {
     // TODO maybe check and block re-init then no strong exception safety needed
     std::string create_call;
-    if (flag == Output::Console) {
+    if (flag == Output::Null) {
+        throw std::runtime_error("No output flag has been set for logger");
+    } else if (flag == Output::Console) {
         create_call = "/P7.Sink=Console";
     } else if (flag == Output::File) {
         create_call = "/P7.Sink=FileTxt /P7.Dir=" + dir_or_addr;

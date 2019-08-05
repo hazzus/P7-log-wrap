@@ -9,9 +9,9 @@
 
 class Logger {
   public:
-    enum class Output { Console, File, Network };
+    enum class Output { Console, File, Network, Null };
 
-    Logger(Output out = Output::Console);
+    Logger();
     ~Logger();
 
     Logger(const Logger&) = delete;
@@ -19,7 +19,9 @@ class Logger {
     Logger& operator=(const Logger&) = delete;
     Logger& operator=(const Logger&&) = delete;
 
-    static Logger* instance();
+    static Logger& instance();
+
+    void setFlag(Output out);
 
     void init(std::string const& thread_name = "Default thread name",
               std::string const& module_name = "Default module name",
