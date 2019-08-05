@@ -1,0 +1,3 @@
+[submodule "libp7-baical"]
+	path = libp7-baical
+	url = https://github.com/CMakePorts/libp7-baical
