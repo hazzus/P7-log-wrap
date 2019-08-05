@@ -45,23 +45,4 @@ void Logger::init(std::string const& thread_name,
     trace->P7_INFO(module, "Starting logging");
 }
 
-// TODO variadic arguments for functions
-void Logger::debug(const std::string& str) { log(EP7TRACE_LEVEL_DEBUG, str); }
-
-void Logger::info(const std::string& str) { log(EP7TRACE_LEVEL_INFO, str); }
-
-void Logger::warning(const std::string& str) {
-    log(EP7TRACE_LEVEL_WARNING, str);
-}
-
-void Logger::error(const std::string& str) { log(EP7TRACE_LEVEL_ERROR, str); }
-
-void Logger::critical(const std::string& str) {
-    log(EP7TRACE_LEVEL_CRITICAL, str);
-}
-
-void Logger::log(eP7Trace_Level level, const std::string& str) {
-    trace->P7_DELIVER(0, level, module, TM(str.c_str()));
-}
-
 Logger::~Logger() { trace->P7_INFO(module, TM("Log closing")); }

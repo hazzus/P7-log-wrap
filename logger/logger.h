@@ -25,18 +25,31 @@ class Logger {
               std::string const& module_name = "Default module name",
               std::string const& dir_or_addr = "");
 
-    void debug(const std::string& str);
+    template <typename... T> void debug(const std::string& str, T... args) {
+        log(EP7TRACE_LEVEL_DEBUG, str, args...);
+    }
 
-    void info(const std::string& str);
+    template <typename... T> void info(const std::string& str, T... args) {
+        log(EP7TRACE_LEVEL_INFO, str, args...);
+    }
 
-    void warning(const std::string& str);
+    template <typename... T> void warning(const std::string& str, T... args) {
+        log(EP7TRACE_LEVEL_WARNING, str, args...);
+    }
 
-    void error(const std::string& str);
+    template <typename... T> void error(const std::string& str, T... args) {
+        log(EP7TRACE_LEVEL_ERROR, str, args...);
+    }
 
-    void critical(const std::string& str);
+    template <typename... T> void critical(const std::string& str, T... args) {
+        log(EP7TRACE_LEVEL_CRITICAL, str, args...);
+    }
 
   private:
-    void log(eP7Trace_Level level, const std::string& str);
+    template <typename... T>
+    void log(eP7Trace_Level level, const std::string& str, T... args) {
+        trace->P7_DELIVER(0, level, module, TM(str.c_str()), args...);
+    }
 
     Output flag = Output::Console;
     std::unique_ptr<IP7_Trace, void (*)(IP7_Trace*)> trace;
