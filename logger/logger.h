@@ -47,6 +47,9 @@ class Logger {
         log(EP7TRACE_LEVEL_CRITICAL, str, args...);
     }
 
+    friend Logger& operator<<(Logger& logger, eP7Trace_Level const& level);
+    friend Logger& operator<<(Logger& logger, std::string const& str);
+
   private:
     template <typename... T>
     void log(eP7Trace_Level level, const std::string& str, T... args) {
@@ -67,5 +70,30 @@ class Logger {
     std::unordered_map<Output, std::string> flags;
     std::pair<IP7_Client*, IP7_Trace*> client_traces[3];
     IP7_Trace::hModule module = nullptr;
+
+    eP7Trace_Level operator_level = EP7TRACE_LEVEL_INFO;
 };
+
+Logger& operator<<(Logger& logger, eP7Trace_Level const& level) {
+    logger.operator_level = level;
+    return logger;
+}
+
+// TODO here is no way to pass str format args
+Logger& operator<<(Logger& logger, std::string const& str) {
+    logger.log(logger.operator_level, str);
+    return logger;
+}
+
+// I prefer inline funcs to macros
+inline Logger& DEBUG() { return Logger::instance() << EP7TRACE_LEVEL_DEBUG; }
+inline Logger& INFO() { return Logger::instance() << EP7TRACE_LEVEL_INFO; }
+inline Logger& WARNING() {
+    return Logger::instance() << EP7TRACE_LEVEL_WARNING;
+}
+inline Logger& ERROR() { return Logger::instance() << EP7TRACE_LEVEL_ERROR; }
+inline Logger& CRITICAL() {
+    return Logger::instance() << EP7TRACE_LEVEL_CRITICAL;
+}
+
 #endif // LOGGER_H

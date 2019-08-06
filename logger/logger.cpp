@@ -3,6 +3,7 @@
 Logger::Logger() {}
 
 Logger& Logger::instance() {
+    // Meyer's singletone, effective & short
     static Logger instance;
     return instance;
 }
