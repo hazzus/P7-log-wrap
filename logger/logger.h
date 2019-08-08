@@ -53,6 +53,8 @@ class Logger {
     }
 
   private:
+    static Logger* _instance;
+
     template <typename... T>
     void log(eP7Trace_Level const& level, std::string const& str, T... args) {
         for (stream const& s : _output) {

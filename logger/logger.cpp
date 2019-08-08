@@ -1,8 +1,10 @@
 #include "logger.h"
 
-Logger::Logger() : flags(0) {}
+Logger* Logger::_instance = nullptr;
 
-Logger::Logger(int const flags) : flags(flags) {}
+Logger::Logger() : flags(0) { _instance = this; }
+
+Logger::Logger(int const flags) : flags(flags) { _instance = this; }
 
 void Logger::init(const std::string& log_dir, const std::string& baical_addr) {
     _output[0].args = "/P7.Sink=Console";
@@ -51,7 +53,8 @@ Logger::~Logger() {
 }
 
 Logger* Logger::instance() {
-    // TODO
+    // TODO maybe throw runtime if nullptr
+    return _instance;
 }
 
 Logger::stream::stream()
