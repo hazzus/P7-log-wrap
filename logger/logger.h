@@ -14,7 +14,7 @@ class Logger {
     };
 
     Logger();
-    Logger(int const& flags);
+    Logger(int const flags);
     ~Logger();
 
     Logger(const Logger&) = delete;
@@ -26,7 +26,7 @@ class Logger {
 
     void init(std::string const& log_dir, std::string const& baical_addr);
 
-    void setFlag(int const flag, bool const& value);
+    void setFlag(int const flag, bool const value);
 
     void setFilePath(std::string const& filepath);
 
@@ -69,7 +69,7 @@ class Logger {
 
         void activate();
         void release();
-        void reset(bool const& value);
+        void reset(bool const value);
 
         ~stream();
 

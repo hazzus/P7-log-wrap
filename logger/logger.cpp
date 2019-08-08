@@ -2,7 +2,7 @@
 
 Logger::Logger() : flags(0) {}
 
-Logger::Logger(int const& flags) : flags(flags) {}
+Logger::Logger(int const flags) : flags(flags) {}
 
 void Logger::init(const std::string& log_dir, const std::string& baical_addr) {
     _output[0].args = "/P7.Sink=Console";
@@ -21,7 +21,7 @@ void Logger::init(const std::string& log_dir, const std::string& baical_addr) {
     log(EP7TRACE_LEVEL_INFO, "Starting logging");
 }
 
-void Logger::setFlag(const int flag, const bool& value) {
+void Logger::setFlag(const int flag, const bool value) {
     if (flag & Output::Console) {
         _output[0].reset(value);
     }
@@ -85,7 +85,7 @@ void Logger::stream::release() {
     }
 }
 
-void Logger::stream::reset(const bool& value) {
+void Logger::stream::reset(const bool value) {
     if (enabled == value)
         return;
     enabled = value;
