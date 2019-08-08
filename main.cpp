@@ -6,12 +6,10 @@
 void call_me_baby() {
     Logger* log = Logger::instance();
 
-    // Это основной use case
-    // DEBUG() << "dsfsdfds" <
-    //    435 << "sdfsdfsdf"; //если не получится реализовать, то ничего
-    //    страшного
+    //Это основной use case
 
-    log->debug("sdfsdfsdf"); // Так тоже можно
+    // BUG only first phrase is outputing, but why?
+    DEBUG() << "Hello" << 343 << "Goodbye";
 
     try {
         log->setFlag(

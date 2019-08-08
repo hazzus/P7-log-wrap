@@ -53,7 +53,7 @@ Logger::~Logger() {
 }
 
 Logger* Logger::instance() {
-    // TODO maybe throw runtime if nullptr
+    assert(_instance != nullptr);
     return _instance;
 }
 
@@ -101,17 +101,8 @@ void Logger::stream::reset(const bool value) {
 
 Logger::stream::~stream() { release(); }
 
-template <typename T> inline operable& operator<<(operable& op, T val) {
-    op.logger->log(op.level, std::to_string(val));
-    return op;
-}
-
-inline operable INFO() { return {EP7TRACE_LEVEL_INFO, Logger::instance()}; }
-inline operable DEBUG() { return {EP7TRACE_LEVEL_DEBUG, Logger::instance()}; }
-inline operable WARNING() {
-    return {EP7TRACE_LEVEL_WARNING, Logger::instance()};
-}
-inline operable ERROR() { return {EP7TRACE_LEVEL_ERROR, Logger::instance()}; }
-inline operable CRITICAL() {
-    return {EP7TRACE_LEVEL_CRITICAL, Logger::instance()};
-}
+operable INFO() { return {EP7TRACE_LEVEL_INFO, Logger::instance()}; }
+operable DEBUG() { return {EP7TRACE_LEVEL_DEBUG, Logger::instance()}; }
+operable WARNING() { return {EP7TRACE_LEVEL_WARNING, Logger::instance()}; }
+operable ERROR() { return {EP7TRACE_LEVEL_ERROR, Logger::instance()}; }
+operable CRITICAL() { return {EP7TRACE_LEVEL_CRITICAL, Logger::instance()}; }

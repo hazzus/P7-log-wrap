@@ -1,11 +1,15 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#include <assert.h>
+#include <stdexcept>
 #include <string>
-#include <unordered_map>
+#include <type_traits>
 
 #include "P7_Client.h"
 #include "P7_Trace.h"
+
+struct operable;
 
 class Logger {
   public:
@@ -52,6 +56,9 @@ class Logger {
         log(EP7TRACE_LEVEL_CRITICAL, str, args...);
     }
 
+    template <typename T> friend inline operable operator<<(operable op, T val);
+    friend operable operator+(operable op, int val);
+
   private:
     static Logger* _instance;
 
@@ -89,5 +96,20 @@ struct operable {
     eP7Trace_Level level;
     Logger* logger;
 };
+
+template <typename T> operable operator<<(operable op, T val) {
+    if constexpr (std::is_convertible<T, std::string>::value) {
+        op.logger->log(op.level, val);
+    } else {
+        op.logger->log(op.level, std::to_string(val));
+    }
+    return op;
+}
+
+operable INFO();
+operable DEBUG();
+operable WARNING();
+operable ERROR();
+operable CRITICAL();
 
 #endif // LOGGER_H
