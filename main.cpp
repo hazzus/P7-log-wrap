@@ -3,21 +3,36 @@
 
 #include "logger.h"
 
-int main() {
-    Logger& logger = Logger::instance();
-    logger.setFlag(Logger::Output::Console);
-    logger.setFlag(Logger::Output::File, "logs");
+void call_me_baby() {
+    Logger* log = Logger::instance();
+
+    // Это основной use case
+    // DEBUG() << "dsfsdfds" <
+    //    435 << "sdfsdfsdf"; //если не получится реализовать, то ничего
+    //    страшного
+
+    log->debug("sdfsdfsdf"); // Так тоже можно
+
     try {
-        logger.init("Main thread", "Main");
+        log->setFlag(
+            Logger::Output::Network,
+            true); // log скрывает за собой Logger::instance(). При
+                   // передаче флага указываем включить его или выключить
+
+        log->setFlag(Logger::Output::File, false); // Выключаем запись в файл
+
+        log->setFilePath("path"); // Изменяем файл для логов
+
+        log->setServer("ip"); // Изменяем адрес сервера
     } catch (std::runtime_error& e) {
         std::cerr << "Error occured: " << e.what() << ". Exiting..."
                   << std::endl;
-        return 1;
     }
-    int x = rand();
-    logger.info("Hello, friend. Your random number: %d", x);
-    logger << "Info is default for operator output";
-    DEBUG() << "Some operator debug info";
-    logger << EP7TRACE_LEVEL_WARNING;
-    logger << "More functionalities appear!";
+}
+
+int main() {
+    Logger log(Logger::Output::Console | Logger::Output::File);
+    log.init("logs", "127.0.0.1");
+
+    call_me_baby();
 }

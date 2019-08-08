@@ -1,72 +1,114 @@
 #include "logger.h"
 
-Logger::Logger() {}
+Logger::Logger() : flags(0) {}
 
-Logger& Logger::instance() {
-    // Meyer's singletone, effective & short
-    static Logger instance;
-    return instance;
-}
+Logger::Logger(int const& flags) : flags(flags) {}
 
-void Logger::setFlag(Output out, std::string const& dir_or_addr) {
-    flags[out] = dir_or_addr;
-}
+void Logger::init(const std::string& log_dir, const std::string& baical_addr) {
+    _output[0].args = "/P7.Sink=Console";
+    _output[1].args = "/P7.Sink=FileTxt /P7.Dir=" + log_dir;
+    _output[2].args = "/P7.Sink=Baical /P7.Addr=" + baical_addr;
 
-void Logger::init(std::string const& thread_name,
-                  std::string const& module_name) {
-    // TODO maybe check and block re-init then no strong exception safety needed
-    if (flags.empty()) {
-        throw std::runtime_error("No output flag has been set for logger");
+    if (flags & Output::Console) {
+        _output[0].activate();
     }
-    if (flags.count(Output::Console)) {
-        set_pair(0, "/P7.Sink=Console", thread_name, module_name);
+    if (flags & Output::File) {
+        _output[1].activate();
     }
-    auto f_it = flags.find(Output::File);
-    if (f_it != flags.end()) {
-        set_pair(1, "/P7.Sink=FileTxt /P7.Dir=" + f_it->second, thread_name,
-                 module_name);
-    }
-    f_it = flags.find(Output::Network);
-    if (f_it != flags.end()) {
-        set_pair(2, "/P7.Sink=Baical /P7.Addr=" + f_it->second, thread_name,
-                 module_name);
+    if (flags & Output::Network) {
+        _output[2].activate();
     }
     log(EP7TRACE_LEVEL_INFO, "Starting logging");
 }
 
-void Logger::set_pair(size_t const& index, std::string const& create_args,
-                      std::string const& thread_name,
-                      std::string const& module_name) {
-    IP7_Client* client = P7_Create_Client(TM(create_args.c_str()));
-    if (client == nullptr) {
-        throw std::runtime_error("Couldn't create client");
+void Logger::setFlag(const int flag, const bool& value) {
+    if (flag & Output::Console) {
+        _output[0].reset(value);
     }
-    IP7_Trace* trace = P7_Create_Trace(client, TM("Test trace"));
-    if (trace == nullptr) {
-        throw std::runtime_error("Couldn't create trace");
+    if (flag & Output::File) {
+        _output[1].reset(value);
     }
-    destruct_pair(client_traces[index]);
-    client_traces[index].first = client;
-    client_traces[index].second = trace;
-
-    client_traces[index].second->Register_Thread(TM(thread_name.c_str()), 0);
-    client_traces[index].second->Register_Module(TM(module_name.c_str()),
-                                                 &module);
+    if (flag & Output::Network) {
+        _output[2].reset(value);
+    }
 }
 
-void Logger::destruct_pair(const std::pair<IP7_Client*, IP7_Trace*>& cl_tr) {
-    if (cl_tr.second != nullptr) {
-        cl_tr.second->Unregister_Thread(0);
-        cl_tr.second->Release();
-    }
-    if (cl_tr.first != nullptr) {
-        cl_tr.first->Release();
-    }
+void Logger::setFilePath(const std::string& filepath) {
+    _output[1].args = "/P7.Sink=FileTxt /P7.Dir=" + filepath;
+    _output[1].activate();
+}
+
+void Logger::setServer(const std::string& ip) {
+    _output[2].args = "/P7.Sink=Baical /P7.Addr=" + ip;
+    _output[2].activate();
 }
 
 Logger::~Logger() {
-    log(EP7TRACE_LEVEL_INFO, "Closing log");
-    for (auto const& p : client_traces) {
-        destruct_pair(p);
+    log(EP7TRACE_LEVEL_INFO, "Stopping logging");
+    for (auto& s : _output) {
+        s.release();
     }
+}
+
+Logger* Logger::instance() {
+    // TODO
+}
+
+Logger::stream::stream()
+    : enabled(false), args(), client(nullptr), trace(nullptr) {}
+
+void Logger::stream::activate() {
+    IP7_Client* next_client = P7_Create_Client(TM(args.c_str()));
+    if (next_client == nullptr) {
+        throw std::runtime_error("Cannot create client");
+    }
+    IP7_Trace* next_trace = P7_Create_Trace(next_client, TM("Testing trace"));
+    if (next_trace == nullptr) {
+        throw std::runtime_error("Cannot create trace");
+    }
+
+    release();
+    client = next_client;
+    trace = next_trace;
+
+    enabled = true;
+}
+
+void Logger::stream::release() {
+    if (trace != nullptr) {
+        trace->Release();
+        trace = nullptr;
+    }
+    if (client != nullptr) {
+        client->Release();
+        client = nullptr;
+    }
+}
+
+void Logger::stream::reset(const bool& value) {
+    if (enabled == value)
+        return;
+    enabled = value;
+    if (enabled) {
+        activate();
+    } else {
+        release();
+    }
+}
+
+Logger::stream::~stream() { release(); }
+
+template <typename T> inline operable& operator<<(operable& op, T val) {
+    op.logger->log(op.level, std::to_string(val));
+    return op;
+}
+
+inline operable INFO() { return {EP7TRACE_LEVEL_INFO, Logger::instance()}; }
+inline operable DEBUG() { return {EP7TRACE_LEVEL_DEBUG, Logger::instance()}; }
+inline operable WARNING() {
+    return {EP7TRACE_LEVEL_WARNING, Logger::instance()};
+}
+inline operable ERROR() { return {EP7TRACE_LEVEL_ERROR, Logger::instance()}; }
+inline operable CRITICAL() {
+    return {EP7TRACE_LEVEL_CRITICAL, Logger::instance()};
 }
