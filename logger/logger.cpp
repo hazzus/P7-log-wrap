@@ -49,6 +49,7 @@ void Logger::flush() {
     if (shift_buffer.empty())
         return;
     log(buffer_level, shift_buffer);
+    shift_buffer = "";
 }
 
 Logger::~Logger() {

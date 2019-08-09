@@ -11,6 +11,8 @@ void call_me_baby() {
     // BUG only first phrase is outputing, but why?
     DEBUG() << "Hello" << 343 << "Goodbye";
 
+    log->warning("Hello %d %s", 343, "Goodbye");
+
     try {
         log->setFlag(
             Logger::Output::Network,
