@@ -117,7 +117,7 @@ template <typename T> operable operator<<(operable op, T val) {
     } else {
         op.logger->shift_buffer += std::to_string(val);
     }
-    op.logger->shift_buffer += val;
+    op.logger->shift_buffer += " ";
     return op;
 }
 
