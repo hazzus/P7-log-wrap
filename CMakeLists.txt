@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
+set(CXX_STANDARD_REQUIRED 17)
+
 project(incoel_logger)
 
 include_directories(${PROJECT_SOURCE_DIR}/logger)
