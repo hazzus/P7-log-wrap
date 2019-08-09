@@ -36,43 +36,44 @@ class Logger {
 
     void setServer(std::string const& ip);
 
-    template <typename... T> void debug(const std::string& str, T... args) {
+    template <typename... T> void debug(const std::string& str, T&&... args) {
         flush();
-        log(EP7TRACE_LEVEL_DEBUG, str, args...);
+        log(EP7TRACE_LEVEL_DEBUG, str, std::forward<T>(args)...);
     }
 
-    template <typename... T> void info(const std::string& str, T... args) {
+    template <typename... T> void info(const std::string& str, T&&... args) {
         flush();
-        log(EP7TRACE_LEVEL_INFO, str, args...);
+        log(EP7TRACE_LEVEL_INFO, str, std::forward<T>(args)...);
     }
 
-    template <typename... T> void warning(const std::string& str, T... args) {
+    template <typename... T> void warning(const std::string& str, T&&... args) {
         flush();
-        log(EP7TRACE_LEVEL_WARNING, str, args...);
+        log(EP7TRACE_LEVEL_WARNING, str, std::forward<T>(args)...);
     }
 
-    template <typename... T> void error(const std::string& str, T... args) {
+    template <typename... T> void error(const std::string& str, T&&... args) {
         flush();
-        log(EP7TRACE_LEVEL_ERROR, str, args...);
+        log(EP7TRACE_LEVEL_ERROR, str, std::forward<T>(args)...);
     }
 
-    template <typename... T> void critical(const std::string& str, T... args) {
+    template <typename... T>
+    void critical(const std::string& str, T&&... args) {
         flush();
-        log(EP7TRACE_LEVEL_CRITICAL, str, args...);
+        log(EP7TRACE_LEVEL_CRITICAL, str, std::forward<T>(args)...);
     }
 
-    template <typename T> friend inline operable operator<<(operable op, T val);
-    friend operable operator+(operable op, int val);
+    template <typename T>
+    friend inline operable&& operator<<(operable&& op, T&& val);
 
   private:
     static Logger* _instance;
 
     template <typename... T>
-    void log(eP7Trace_Level const& level, std::string const& str, T... args) {
+    void log(eP7Trace_Level const& level, std::string const& str, T&&... args) {
         for (stream const& s : _output) {
             if (s.enabled) {
                 s.trace->P7_DELIVER(0, level, nullptr, TM(str.c_str()),
-                                    args...);
+                                    std::forward<T>(args)...);
             }
         }
     }
@@ -107,7 +108,7 @@ struct operable {
     Logger* logger;
 };
 
-template <typename T> operable operator<<(operable op, T val) {
+template <typename T> operable&& operator<<(operable&& op, T&& val) {
     if (op.logger->buffer_level != op.level) {
         op.logger->flush();
     }
@@ -118,13 +119,17 @@ template <typename T> operable operator<<(operable op, T val) {
         op.logger->shift_buffer += std::to_string(val);
     }
     op.logger->shift_buffer += " ";
-    return op;
+    return std::move(op);
 }
 
-operable INFO();
-operable DEBUG();
-operable WARNING();
-operable ERROR();
-operable CRITICAL();
+inline operable INFO() { return {EP7TRACE_LEVEL_INFO, Logger::instance()}; }
+inline operable DEBUG() { return {EP7TRACE_LEVEL_DEBUG, Logger::instance()}; }
+inline operable WARNING() {
+    return {EP7TRACE_LEVEL_WARNING, Logger::instance()};
+}
+inline operable ERROR() { return {EP7TRACE_LEVEL_ERROR, Logger::instance()}; }
+inline operable CRITICAL() {
+    return {EP7TRACE_LEVEL_CRITICAL, Logger::instance()};
+}
 
 #endif // LOGGER_H

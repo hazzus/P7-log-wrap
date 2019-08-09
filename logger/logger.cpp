@@ -78,8 +78,8 @@ void Logger::stream::activate() {
     }
 
     release();
-    client = next_client;
-    trace = next_trace;
+    client = std::move(next_client);
+    trace = std::move(next_trace);
 
     enabled = true;
 }
@@ -107,9 +107,3 @@ void Logger::stream::reset(const bool value) {
 }
 
 Logger::stream::~stream() { release(); }
-
-operable INFO() { return {EP7TRACE_LEVEL_INFO, Logger::instance()}; }
-operable DEBUG() { return {EP7TRACE_LEVEL_DEBUG, Logger::instance()}; }
-operable WARNING() { return {EP7TRACE_LEVEL_WARNING, Logger::instance()}; }
-operable ERROR() { return {EP7TRACE_LEVEL_ERROR, Logger::instance()}; }
-operable CRITICAL() { return {EP7TRACE_LEVEL_CRITICAL, Logger::instance()}; }
