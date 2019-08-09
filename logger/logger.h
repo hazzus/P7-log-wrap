@@ -11,6 +11,8 @@
 
 struct operable;
 
+static int line = 0;
+
 class Logger {
   public:
     struct Output {
@@ -36,49 +38,21 @@ class Logger {
 
     void setServer(std::string const& ip);
 
-    template <typename... T> void debug(const std::string& str, T&&... args) {
-        flush();
-        log(EP7TRACE_LEVEL_DEBUG, str, std::forward<T>(args)...);
-    }
+    void info(const char* str, ...);
 
-    template <typename... T> void info(const std::string& str, T&&... args) {
-        flush();
-        log(EP7TRACE_LEVEL_INFO, str, std::forward<T>(args)...);
-    }
+    void debug(const char* str, ...);
 
-    template <typename... T> void warning(const std::string& str, T&&... args) {
-        flush();
-        log(EP7TRACE_LEVEL_WARNING, str, std::forward<T>(args)...);
-    }
+    void warning(const char* str, ...);
 
-    template <typename... T> void error(const std::string& str, T&&... args) {
-        flush();
-        log(EP7TRACE_LEVEL_ERROR, str, std::forward<T>(args)...);
-    }
+    void error(const char* str, ...);
 
-    template <typename... T>
-    void critical(const std::string& str, T&&... args) {
-        flush();
-        log(EP7TRACE_LEVEL_CRITICAL, str, std::forward<T>(args)...);
-    }
+    void critical(const char* str, ...);
 
     template <typename T>
     friend inline operable&& operator<<(operable&& op, T&& val);
 
   private:
     static Logger* _instance;
-
-    template <typename... T>
-    void log(eP7Trace_Level const& level, std::string const& str, T&&... args) {
-        for (stream const& s : _output) {
-            if (s.enabled) {
-                s.trace->P7_DELIVER(0, level, nullptr, TM(str.c_str()),
-                                    std::forward<T>(args)...);
-            }
-        }
-    }
-
-    void flush();
 
     struct stream {
       public:
@@ -109,14 +83,17 @@ struct operable {
 };
 
 template <typename T> operable&& operator<<(operable&& op, T&& val) {
-    if (op.logger->buffer_level != op.level) {
-        op.logger->flush();
-    }
     op.logger->buffer_level = op.level;
+    std::string str;
     if constexpr (std::is_convertible<T, std::string>::value) {
-        op.logger->shift_buffer += val;
+        str = val;
     } else {
-        op.logger->shift_buffer += std::to_string(val);
+        str = std::to_string(val);
+    }
+    if (op.level == EP7TRACE_LEVEL_INFO) {
+        op.logger->info(str.c_str());
+    } else if (op.level == EP7TRACE_LEVEL_DEBUG) {
+        op.logger->debug(str.c_str());
     }
     op.logger->shift_buffer += " ";
     return std::move(op);

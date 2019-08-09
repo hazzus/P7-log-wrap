@@ -8,11 +8,12 @@ void call_me_baby() {
 
     //Это основной use case
 
-    // BUG only first phrase is outputing, but why?
+    // BUG only first phrase with same type is outputing, library optimisation?
+    // no such use case actually
     DEBUG() << "Hello" << 343 << "Goodbye";
+    INFO() << "WOW" << 666;
 
-    log->warning("Hello %d %s", 343, "Goodbye");
-
+    log->warning("Omg %s %d", "omg", 4);
     try {
         log->setFlag(
             Logger::Output::Network,
@@ -28,6 +29,8 @@ void call_me_baby() {
         std::cerr << "Error occured: " << e.what() << ". Exiting..."
                   << std::endl;
     }
+    log->info("Hello from another log");
+    log->debug("No way %d", 4);
 }
 
 int main() {

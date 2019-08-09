@@ -20,7 +20,7 @@ void Logger::init(const std::string& log_dir, const std::string& baical_addr) {
     if (flags & Output::Network) {
         _output[2].activate();
     }
-    log(EP7TRACE_LEVEL_INFO, "Starting logging");
+    info("Starting logging");
 }
 
 void Logger::setFlag(const int flag, const bool value) {
@@ -45,16 +45,68 @@ void Logger::setServer(const std::string& ip) {
     _output[2].activate();
 }
 
-void Logger::flush() {
-    if (shift_buffer.empty())
-        return;
-    log(buffer_level, shift_buffer);
-    shift_buffer = "";
+void Logger::info(const char* str, ...) {
+    va_list args;
+    va_start(args, str);
+    for (stream const& s : _output) {
+        if (s.enabled) {
+            s.trace->Trace_Embedded(0, EP7TRACE_LEVEL_INFO, nullptr, 0, nullptr,
+                                    nullptr, &str, &args);
+        }
+    }
+    va_end(args);
+}
+
+void Logger::debug(const char* str, ...) {
+    va_list args;
+    va_start(args, str);
+    for (stream const& s : _output) {
+        if (s.enabled) {
+            s.trace->Trace_Embedded(0, EP7TRACE_LEVEL_DEBUG, nullptr, 0,
+                                    nullptr, nullptr, &str, &args);
+        }
+    }
+    va_end(args);
+}
+
+void Logger::warning(const char* str, ...) {
+    va_list args;
+    va_start(args, str);
+    for (stream const& s : _output) {
+        if (s.enabled) {
+            s.trace->Trace_Embedded(0, EP7TRACE_LEVEL_WARNING, nullptr, 0,
+                                    nullptr, nullptr, &str, &args);
+        }
+    }
+    va_end(args);
+}
+
+void Logger::error(const char* str, ...) {
+    va_list args;
+    va_start(args, str);
+    for (stream const& s : _output) {
+        if (s.enabled) {
+            s.trace->Trace_Embedded(0, EP7TRACE_LEVEL_ERROR, nullptr, 0,
+                                    nullptr, nullptr, &str, &args);
+        }
+    }
+    va_end(args);
+}
+
+void Logger::critical(const char* str, ...) {
+    va_list args;
+    va_start(args, str);
+    for (stream const& s : _output) {
+        if (s.enabled) {
+            s.trace->Trace_Embedded(0, EP7TRACE_LEVEL_CRITICAL, nullptr, 0,
+                                    nullptr, nullptr, &str, &args);
+        }
+    }
+    va_end(args);
 }
 
 Logger::~Logger() {
-    flush();
-    log(EP7TRACE_LEVEL_INFO, "Stopping logging");
+    info("Stopping logging");
     for (auto& s : _output) {
         s.release();
     }
