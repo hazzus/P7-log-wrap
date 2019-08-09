@@ -45,7 +45,14 @@ void Logger::setServer(const std::string& ip) {
     _output[2].activate();
 }
 
+void Logger::flush() {
+    if (shift_buffer.empty())
+        return;
+    log(buffer_level, shift_buffer);
+}
+
 Logger::~Logger() {
+    flush();
     log(EP7TRACE_LEVEL_INFO, "Stopping logging");
     for (auto& s : _output) {
         s.release();

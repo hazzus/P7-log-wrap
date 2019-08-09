@@ -37,22 +37,27 @@ class Logger {
     void setServer(std::string const& ip);
 
     template <typename... T> void debug(const std::string& str, T... args) {
+        flush();
         log(EP7TRACE_LEVEL_DEBUG, str, args...);
     }
 
     template <typename... T> void info(const std::string& str, T... args) {
+        flush();
         log(EP7TRACE_LEVEL_INFO, str, args...);
     }
 
     template <typename... T> void warning(const std::string& str, T... args) {
+        flush();
         log(EP7TRACE_LEVEL_WARNING, str, args...);
     }
 
     template <typename... T> void error(const std::string& str, T... args) {
+        flush();
         log(EP7TRACE_LEVEL_ERROR, str, args...);
     }
 
     template <typename... T> void critical(const std::string& str, T... args) {
+        flush();
         log(EP7TRACE_LEVEL_CRITICAL, str, args...);
     }
 
@@ -72,6 +77,8 @@ class Logger {
         }
     }
 
+    void flush();
+
     struct stream {
       public:
         stream();
@@ -90,6 +97,9 @@ class Logger {
 
     int flags;
     stream _output[3];
+
+    std::string shift_buffer;
+    eP7Trace_Level buffer_level;
 };
 
 struct operable {
@@ -98,11 +108,16 @@ struct operable {
 };
 
 template <typename T> operable operator<<(operable op, T val) {
-    if constexpr (std::is_convertible<T, std::string>::value) {
-        op.logger->log(op.level, val);
-    } else {
-        op.logger->log(op.level, std::to_string(val));
+    if (op.logger->buffer_level != op.level) {
+        op.logger->flush();
     }
+    op.logger->buffer_level = op.level;
+    if constexpr (std::is_convertible<T, std::string>::value) {
+        op.logger->shift_buffer += val;
+    } else {
+        op.logger->shift_buffer += std::to_string(val);
+    }
+    op.logger->shift_buffer += val;
     return op;
 }
 
