@@ -9,9 +9,9 @@ void call_me_baby() {
     //Это основной use case
 
     // BUG only first phrase with same type is outputing, library optimisation?
-    // no such use case actually
-    DEBUG() << "Hello" << 343 << "Goodbye";
-    INFO() << "WOW" << 666;
+    // no such use case actually can be used
+    // DEBUG() << "Hello" << 343 << "Goodbye";
+    // INFO() << "WOW" << 666;
 
     log->warning("Omg %s %d", "omg", 4);
     try {
