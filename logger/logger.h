@@ -11,16 +11,16 @@
 
 struct operable;
 
-static int line = 0;
-
 class Logger {
   public:
-    struct Output {
-        static const int Console = 1, File = 2, Network = 4;
+    enum class Output : int {
+        Console = 1,
+        File = 2,
+        Network = 4,
     };
 
     Logger();
-    Logger(int const flags);
+    Logger(Output flags);
     ~Logger();
 
     Logger(const Logger&) = delete;
@@ -32,7 +32,7 @@ class Logger {
 
     void init(std::string const& log_dir, std::string const& baical_addr);
 
-    void setFlag(int const flag, bool const value);
+    void setFlag(Output flag, bool const value);
 
     void setFilePath(std::string const& filepath);
 
@@ -49,7 +49,7 @@ class Logger {
     void critical(const char* str, ...);
 
     template <typename T>
-    friend inline operable&& operator<<(operable&& op, T&& val);
+    friend inline operable operator<<(operable op, T&& val);
 
   private:
     static Logger* _instance;
@@ -74,12 +74,17 @@ class Logger {
     stream _output[3];
 };
 
+inline Logger::Output operator|(Logger::Output a, Logger::Output b) {
+    using T = std::underlying_type_t<Logger::Output>;
+    return static_cast<Logger::Output>(static_cast<T>(a) | static_cast<T>(b));
+}
+
 struct operable {
     eP7Trace_Level level;
     Logger* logger;
 };
 
-template <typename T> operable&& operator<<(operable&& op, T&& val) {
+template <typename T> operable operator<<(operable op, T&& val) {
     const char* str;
     if constexpr (std::is_convertible<T, std::string>::value) {
         str = std::string(val).c_str();
@@ -92,7 +97,7 @@ template <typename T> operable&& operator<<(operable&& op, T&& val) {
                                     &str, nullptr);
         }
     }
-    return std::move(op);
+    return op;
 }
 
 inline operable INFO() { return {EP7TRACE_LEVEL_INFO, Logger::instance()}; }

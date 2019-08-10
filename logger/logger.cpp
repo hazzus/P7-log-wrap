@@ -4,33 +4,33 @@ Logger* Logger::_instance = nullptr;
 
 Logger::Logger() : flags(0) { _instance = this; }
 
-Logger::Logger(int const flags) : flags(flags) { _instance = this; }
+Logger::Logger(Output flags) : flags(static_cast<int>(flags)) {
+    _instance = this;
+}
 
 void Logger::init(const std::string& log_dir, const std::string& baical_addr) {
     _output[0].args = "/P7.Sink=Console";
     _output[1].args = "/P7.Sink=FileTxt /P7.Dir=" + log_dir;
     _output[2].args = "/P7.Sink=Baical /P7.Addr=" + baical_addr;
 
-    if (flags & Output::Console) {
+    if (flags & static_cast<int>(Output::Console)) {
         _output[0].activate();
     }
-    if (flags & Output::File) {
+    if (flags & static_cast<int>(Output::File)) {
         _output[1].activate();
     }
-    if (flags & Output::Network) {
+    if (flags & static_cast<int>(Output::Network)) {
         _output[2].activate();
     }
     info("Starting logging");
 }
 
-void Logger::setFlag(const int flag, const bool value) {
-    if (flag & Output::Console) {
+void Logger::setFlag(Output flag, const bool value) {
+    if (flag == Output::Console) {
         _output[0].reset(value);
-    }
-    if (flag & Output::File) {
+    } else if (flag == Output::File) {
         _output[1].reset(value);
-    }
-    if (flag & Output::Network) {
+    } else {
         _output[2].reset(value);
     }
 }

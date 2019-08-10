@@ -13,7 +13,7 @@ void call_me_baby() {
     // DEBUG() << "Hello" << 343 << "Goodbye";
     // INFO() << "WOW" << 666;
 
-    log->warning("Omg %s %d", "omg", 4);
+    log->warning("Omg %d %s", 4, "omg");
     try {
         log->setFlag(
             Logger::Output::Network,
@@ -35,7 +35,12 @@ void call_me_baby() {
 
 int main() {
     Logger log(Logger::Output::Console | Logger::Output::File);
-    log.init("logs", "127.0.0.1");
+    try {
+        log.init("logs", "127.0.0.1");
+    } catch (std::runtime_error& e) {
+        std::cerr << "Error. " << e.what() << ". Exiting..." << std::endl;
+        return 1;
+    }
 
     call_me_baby();
 }
